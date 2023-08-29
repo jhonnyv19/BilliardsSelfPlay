@@ -67,6 +67,8 @@ public class PoolEnvController : MonoBehaviour
 
     private bool needToResetScene = false;
 
+    public bool needToMoveCueBall = false;
+
     // Current player
     private Player currentPlayer;
 
@@ -159,8 +161,30 @@ public class PoolEnvController : MonoBehaviour
 
     private void FixedUpdate() {
         if(needToResetScene){
-            resetScene();
             needToResetScene = false;
+            resetScene();
+        }         
+        // Check if cue ball was pocketed, which should not happen
+        else if (needToMoveCueBall)
+        {
+            needToMoveCueBall = false;
+
+            if (currentPlayer == Player.SolidPlayer)
+            {
+                // Debug.Log("Solid player pocketed the cue ball");
+                solidPlayer.AddReward(-0.5f);
+            }
+            else
+            {
+                // Debug.Log("Striped player pocketed the cue ball");
+                stripedPlayer.AddReward(-0.5f);
+            }
+
+            // If it was pocketed, move it back to its previous position and clear forces
+            // ResetCueBall(previousCueBallLocalPosition);
+
+            MoveCueBall(previousCueBallLocalPosition);
+
         }
     }
 
@@ -211,25 +235,6 @@ public class PoolEnvController : MonoBehaviour
                 }
             }
 
-            // Check if cue ball was pocketed, which should not happen
-            if (cueBall.transform.localPosition.y < yThreshold)
-            {
-                if (currentPlayer == Player.SolidPlayer)
-                {
-                    // Debug.Log("Solid player pocketed the cue ball");
-                    solidPlayer.AddReward(-0.5f);
-                }
-                else
-                {
-                    // Debug.Log("Striped player pocketed the cue ball");
-                    stripedPlayer.AddReward(-0.5f);
-                }
-
-                // If it was pocketed, move it back to its previous position and clear forces
-                ResetCueBall(previousCueBallLocalPosition);
-
-            }
-
             // Check if solid player won
             if (pocketedSolidBalls.Count == 7 && blackBall.transform.localPosition.y < yThreshold)
             {
@@ -272,16 +277,16 @@ public class PoolEnvController : MonoBehaviour
                 }
                 else
                 {
-                    // If the number of pocketed balls is the same, assign loss to both players
-                    solidPlayer.SetReward(-1.0f);
-                    stripedPlayer.SetReward(-1.0f);
+                    // If the number of pocketed balls is the same, assign 0 to both players
+                    solidPlayer.SetReward(0.0f);
+                    stripedPlayer.SetReward(0.0f);
                 }
 
                 solidPlayer.EndEpisode();
                 stripedPlayer.EndEpisode();
                 needToResetScene = true;
 
-            } 
+            }
 
             // Reset collision boolean
             hasHitBall = false;
@@ -371,6 +376,14 @@ public class PoolEnvController : MonoBehaviour
         actionWasTaken = true;
     }
 
+    private void MoveCueBall(Vector3 position) {
+        cueBallTransform.localPosition = position;
+
+        // Reset the cue ball's velocities
+        cueBall.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        cueBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
+    }
+
     private void ResetCueBall(Vector3 newPosition)
     {
         // Destroy the current cue ball
@@ -455,7 +468,7 @@ public class PoolEnvController : MonoBehaviour
         blackBall.GetComponent<Rigidbody>().angularVelocity = Vector3.zero;
 
         // Adjust the cue ball and clear forces
-        ResetCueBall(new Vector3(-29.75f, ballY, 16.44f));
+        MoveCueBall(new Vector3(-29.75f, ballY, 16.44f));
 
         // Restore solidBalls and stripedBalls lists to their original state
         // solidBalls.Clear();

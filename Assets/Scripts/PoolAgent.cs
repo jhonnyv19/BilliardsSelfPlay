@@ -67,6 +67,9 @@ public class PoolAgent : Agent
 
         envController.actionTaken();
 
+        // Print accumulated reward
+        Debug.Log("Accumulated reward for player: " + GetCumulativeReward());
+
         // Debug.Log(gameObject.name + " hit cue ball");
         // Debug.Log("Location of cue ball after hit: " + cueBall.transform.localPosition);
 
