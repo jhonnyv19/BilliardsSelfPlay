@@ -163,27 +163,36 @@ public class PoolEnvController : MonoBehaviour
         if(needToResetScene){
             needToResetScene = false;
             resetScene();
-        }         
+            // Debug.Log("Scene reset");
+        }
+
+        if(cueBall.transform.localPosition.y < yThreshold){
+            needToMoveCueBall = true;
+
+        }
+        
         // Check if cue ball was pocketed, which should not happen
-        else if (needToMoveCueBall)
+        if (needToMoveCueBall)
         {
-            needToMoveCueBall = false;
 
             if (currentPlayer == Player.SolidPlayer)
             {
                 // Debug.Log("Solid player pocketed the cue ball");
-                solidPlayer.AddReward(-0.5f);
+                solidPlayer.SetReward(-0.5f);
             }
             else
             {
                 // Debug.Log("Striped player pocketed the cue ball");
-                stripedPlayer.AddReward(-0.5f);
+                stripedPlayer.SetReward(-0.5f);
             }
+
+            // Debug.Log("Cue ball was pocketed, negative reward applied");
 
             // If it was pocketed, move it back to its previous position and clear forces
             // ResetCueBall(previousCueBallLocalPosition);
 
             MoveCueBall(previousCueBallLocalPosition);
+            needToMoveCueBall = false;
 
         }
     }
@@ -217,7 +226,9 @@ public class PoolEnvController : MonoBehaviour
                     pocketedSolidBalls.Add(ball);
                     solidBalls.Remove(ball);
                     // Assign reward to the solid player
-                    solidPlayer.AddReward((1 - solidPlayer.getActionsTaken() / maxActions) * pocketedSolidBalls.Count);  // Replace with the actual reward value
+                    // solidPlayer.AddReward((1 - solidPlayer.getActionsTaken() / maxActions) * pocketedSolidBalls.Count);
+                    solidPlayer.AddReward(0.5f);
+
                 }
             }
 
@@ -231,7 +242,8 @@ public class PoolEnvController : MonoBehaviour
                     stripedBalls.Remove(ball);
 
                     // Assign reward to the striped player
-                    stripedPlayer.AddReward((1 - stripedPlayer.getActionsTaken() / maxActions) * pocketedStripedBalls.Count);  // Replace with the actual reward value
+                    // stripedPlayer.AddReward((1 - stripedPlayer.getActionsTaken() / maxActions) * pocketedStripedBalls.Count);
+                    stripedPlayer.AddReward(0.5f);
                 }
             }
 
@@ -345,7 +357,7 @@ public class PoolEnvController : MonoBehaviour
             else
             {
                 // The striped player hit the wrong ball
-                stripedPlayer.AddReward(-0.5f);  // Replace with the actual penalty value
+                // stripedPlayer.AddReward(-0.5f);  // Replace with the actual penalty value
             }
         }
         else if (ballTag == "StripedBall")
@@ -360,7 +372,7 @@ public class PoolEnvController : MonoBehaviour
             else
             {
                 // The solid player hit the wrong ball
-                solidPlayer.AddReward(-0.5f);  // Replace with the actual penalty value
+                // solidPlayer.AddReward(-0.5f);  // Replace with the actual penalty value
             }
         }
 
